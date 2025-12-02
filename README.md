@@ -9,3 +9,5 @@ Jon H is also a member of the team.
 Mikayla M is also a member of the team.
 
 Destiny C is also a member of the team.
+
+Joseph A is also a member of the team.
