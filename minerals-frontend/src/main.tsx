@@ -6,6 +6,7 @@ import { Home } from "./pages/Home.tsx";
 import { Visualizer } from "./pages/Viualizer.tsx";
 import { Commodity } from "./pages/Commodity.tsx";
 import { About } from "./pages/About.tsx";
+import { CommodityList } from "./pages/CommodityList.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -13,8 +14,11 @@ createRoot(document.getElementById("root")!).render(
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="about" element={<About />} />
-        <Route path="commodity" element={<Commodity />} />
         <Route path="map" element={<Visualizer />} />
+        <Route path="commodity">
+          <Route index element={<CommodityList />} />
+          <Route path=":commodity" element={<Commodity />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   </StrictMode>
