@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strconv"
 )
 
 type MRDSRecord struct {
@@ -66,17 +65,67 @@ type MRDSRecord struct {
 	Score float64 `csv:"score"`
 }
 
-func Load(pathway string) ([]MRDSRecord, error) {
+type Metadata struct {
+	MetadataID int64
+	Url        string
+	Score      float64
+}
+
+type SiteIdentification struct {
+	DepID      int64
+	MRDSID     string
+	MASID      string
+	SiteName   string
+	MetadataID int64
+}
+
+type SiteCharacteristics struct {
+	SiteCharID int64
+	DepID      int64
+	OperType   string
+	DepType    string
+	ProdSize   string
+	DevStat    string
+	Ore        string
+	OreBody    string
+	Gangue     string
+	OtherMatl  string
+	WorkType   string
+	Model      string
+	Alteration string
+}
+
+type GeographicLocation struct {
+	GeoID     int64
+	DepID     int64
+	Latitude  float64
+	Longitude float64
+	Country   string
+	State     string
+	County    string
+}
+
+var (
+	metaIDCounter     int64 = 1
+	siteCharIDCounter int64 = 1
+	geoIDCounter      int64 = 1
+)
+
+func Load(pathway string) ([]Metadata, []SiteIdentification, []SiteCharacteristics, []GeographicLocation, error) {
 	return generateRecords(pathway)
 }
 
-func generateRecords(csvPath string) ([]MRDSRecord, error) {
-	var records []MRDSRecord
+func generateRecords(csvPath string) ([]Metadata, []SiteIdentification, []SiteCharacteristics, []GeographicLocation, error) {
+	//var records []MRDSRecord
+	var metadataEntries []Metadata
+	var siteIdentEntries []SiteIdentification
+	var siteCharEntries []SiteCharacteristics
+	var geoEntries []GeographicLocation
 
 	f, err := os.Open(csvPath)
 	if err != nil {
 		fmt.Printf("Failed to open %s: %v\n", csvPath, err)
-		return nil, err
+		return nil, nil, nil, nil, err
 	}
 	defer f.Close()
 
@@ -86,7 +135,7 @@ func generateRecords(csvPath string) ([]MRDSRecord, error) {
 	if _, err := r.Read(); err != nil {
 		f.Close()
 		fmt.Printf("Failed to read header of %s: %v\n", csvPath, err)
-		return nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	for {
@@ -103,25 +152,25 @@ func generateRecords(csvPath string) ([]MRDSRecord, error) {
 			continue
 		}
 
-		depID, err := strconv.ParseInt(record[0], 10, 64)
+		depID, err := parseIntField(record[0], "DepID")
 		if err != nil {
-			fmt.Printf("invalid DepID %q\n", record[0])
+			fmt.Println(err)
 			continue
 		}
 
-		lat, err := strconv.ParseFloat(record[5], 64)
+		lat, err := parseFloatField(record[5], "latitude")
 		if err != nil {
-			fmt.Printf("invalid latitude %q found at depID %q\n", record[5], record[0])
+			fmt.Println(err)
 			continue
 		}
 
-		lon, err := strconv.ParseFloat(record[6], 64)
+		lon, err := parseFloatField(record[6], "longitude")
 		if err != nil {
-			fmt.Printf("invalid longitude %q found at depID %q\n", record[6], record[0])
+			fmt.Println(err)
 			continue
 		}
 
-		score, _ := strconv.ParseFloat(record[45], 64) // score can be empty
+		score, _ := parseFloatField(record[45], "score")
 
 		rec := MRDSRecord{
 			DepID:      depID,
@@ -172,8 +221,72 @@ func generateRecords(csvPath string) ([]MRDSRecord, error) {
 			Score:      score,
 		}
 
-		records = append(records, rec)
+		//records = append(records, rec)
+
+		meta := createMetadata(rec)
+		metadataEntries = append(metadataEntries, meta)
+
+		siteID := createSiteIdentification(rec)
+		siteIdentEntries = append(siteIdentEntries, siteID)
+
+		siteChar := createSiteCharacteristics(rec)
+		siteCharEntries = append(siteCharEntries, siteChar)
+
+		geo := createGeographicLocation(rec)
+		geoEntries = append(geoEntries, geo)
+
+		metaIDCounter++
+		siteCharIDCounter++
+		geoIDCounter++
 	}
 
-	return records, nil
+	return metadataEntries, siteIdentEntries, siteCharEntries, geoEntries, nil
+}
+
+func createMetadata(record MRDSRecord) Metadata {
+	return Metadata{
+		MetadataID: metaIDCounter,
+		Url:        record.URL,
+		Score:      record.Score,
+	}
+}
+
+func createSiteIdentification(record MRDSRecord) SiteIdentification {
+	return SiteIdentification{
+		DepID:      record.DepID,
+		MRDSID:     record.MRDSID,
+		MASID:      record.MASID,
+		SiteName:   record.SiteName,
+		MetadataID: metaIDCounter,
+	}
+}
+
+func createSiteCharacteristics(record MRDSRecord) SiteCharacteristics {
+	return SiteCharacteristics{
+		SiteCharID: siteCharIDCounter,
+		DepID:      record.DepID,
+		OperType:   record.OperType,
+		DepType:    record.DepType,
+		ProdSize:   record.ProdSize,
+		DevStat:    record.DevStat,
+		Ore:        record.Ore,
+		OreBody:    record.OrebodyFm,
+		Gangue:     record.Gangue,
+		OtherMatl:  record.OtherMatl,
+		WorkType:   record.WorkType,
+		Model:      record.Model,
+		Alteration: record.Alteration,
+	}
+}
+
+func createGeographicLocation(record MRDSRecord) GeographicLocation {
+	return GeographicLocation{
+		GeoID:     geoIDCounter,
+		DepID:     record.DepID,
+		Latitude:  record.Latitude,
+		Longitude: record.Longitude,
+		Country:   record.Country,
+		State:     record.State,
+		County:    record.County,
+	}
 }
