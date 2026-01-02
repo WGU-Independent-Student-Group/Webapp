@@ -158,15 +158,19 @@ func generateRecords(csvPath string) ([]Metadata, []SiteIdentification, []SiteCh
 			continue
 		}
 
-		lat, err := parseFloatField(record[5], "latitude")
+		validLon, validLat, err := validateCoordinates(record[5], record[6])
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
 
-		lon, err := parseFloatField(record[6], "longitude")
-		if err != nil {
-			fmt.Println(err)
+		usa := validateCountry(record[8])
+		if !usa {
+			continue
+		}
+
+		validState := validateState(record[9])
+		if !validState {
 			continue
 		}
 
@@ -178,8 +182,8 @@ func generateRecords(csvPath string) ([]Metadata, []SiteIdentification, []SiteCh
 			MRDSID:     record[2],
 			MASID:      record[3],
 			SiteName:   record[4],
-			Latitude:   lat,
-			Longitude:  lon,
+			Latitude:   validLat,
+			Longitude:  validLon,
 			Region:     record[7],
 			Country:    record[8],
 			State:      record[9],
