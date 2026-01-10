@@ -14,7 +14,7 @@ createRoot(document.getElementById("root")!).render(
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="about" element={<About />} />
-        <Route path="map" element={<Visualizer />} />
+        <Route path="map" element={<Visualizer width={800} height={400} />} />
         <Route path="commodity">
           <Route index element={<CommodityList />} />
           <Route path=":commodity" element={<Commodity />} />

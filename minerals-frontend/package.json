@@ -11,12 +11,18 @@
   },
   "dependencies": {
     "@react-router/fs-routes": "^7.11.0",
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/geojson": "^7946.0.16",
+    "d3": "^7.9.0",
+    "d3-geo": "^3.1.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router": "^7.11.0"
+    "react-router": "^7.11.0",
+    "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/d3": "^7.4.3",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
